@@ -276,13 +276,13 @@ t_plot1 = t_results_df %>%
   ) 
   
 t_plot1 %>% 
-    mutate(text_label = str_c("Reject number: ", reject, "\nProportion of rejection: ", prop_reject_null)) %>%
-    plot_ly(
-    x = ~ true_mu, y = ~ prop_reject_null, type = "scatter", mode = "lines+markers", 
-    text = ~text_label, alpha = 0.5) %>% 
-    layout(title = 'The relashinship between power of the test and ture μ', plot_bgcolor = "#e5ecf6", xaxis = list(title = 'Ture μ value'), 
-         yaxis = list(title = 'The power of the test)'))
-
+    ggplot(aes(x = true_mu, y = prop_reject_null)) +
+    geom_point() +
+    geom_line() +
+    labs(
+   title = "The relashinship between power of the test and ture μ" ,
+   x = "Ture μ value" ,
+   y = "The power of the test")
 
 
 ```
@@ -305,6 +305,16 @@ t_plot3 = t_results_df %>%
   filter(result == "Reject") %>% 
   group_by(true_mu) %>% 
   summarise(avg_estimate_mu = mean(estimate))
+
+ggplot(t_plot2, aes(x = true_mu, y = avg_estimate_mu)) +
+  geom_point() +
+  geom_line() +
+  geom_point(data = t_plot3, color = "pink") +
+  geom_line(data = t_plot3, color = "pink") +
+  labs(
+    title = "Average estimate of μ_hat vs. ture μ",
+    x = "True mu",
+    y = "Average estimate of mu_hat")  
 
 ```
 
