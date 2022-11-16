@@ -236,3 +236,19 @@ sim_results
 
 ```
 
+Repeat the above for μ={1,2,3,4,5,6}:
+
+```{r}
+sim_results_df = 
+  expand_grid(
+    mu = c(1, 2, 3, 4, 5, 6),
+    iteration = 1:5000
+  ) %>% 
+  mutate(
+    estimate_df = map(.x = mu, ~ t_test (mu = .x))
+  ) %>% 
+  unnest(estimate_df)
+sim_results_df
+```
+
+Make a plot showing the proportion of times the null was rejected (the power of the test) on the y axis and the true value of μ on the x axis. Describe the association between effect size and power.
