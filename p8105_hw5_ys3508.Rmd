@@ -107,7 +107,30 @@ hw2 <-read_csv(url(urlfile))
 
 * The 'hw2' dataset comprises 12 variables with a total of 52179 observations, detailing murder cases in various cities around the United States. These factors include the reported date and location, some victim information (name, race, age, and gender), and the homicide's ultimate disposition.
 
+### Create a city_state variable/Summary
+
 ```{r}
+hw2 %>% 
+ mutate(
+    state = str_to_upper(state),
+    city_state = str_c(city, ", ", state),
+    final_disposition =
+          ifelse(disposition == "Closed by arrest" ,"solved", "unsolved")) %>% 
+  group_by(city_state) %>% 
+  summarise(
+    total_homicides = n(),
+    unsolved_homicides = sum(final_disposition == "unsolved")
+  ) %>% 
+  knitr::kable(
+    col.names = c("City, State", "Total Number of Homicides", "Number of Unsolved Homicides")
+  )
+```
+
+###  `prop.test` function
+
+```{r}
+
+
 
 ```
 
