@@ -116,14 +116,16 @@ hw2_homicides = hw2 %>%
     city_state = str_c(city, ", ", state),
     city_state = recode(city_state, "Tulsa, AL" = "Tulsa, OK"), #error in dataset;
     final_disposition =
-          ifelse(disposition == "Closed by arrest" ,"solved", "unsolved")) %>% 
+          ifelse(disposition == "Closed by arrest" ,"solved", "unsolved")) 
+
+ 
+
+hw2_summary = hw2_homicides %>%
   group_by(city_state) %>% 
   summarise(
     total_homicides = n(),
     unsolved_homicides = sum(final_disposition == "unsolved")
-  ) 
-
-hw2_summary = hw2_homicides %>% 
+  ) %>% 
   knitr::kable(
     col.names = c("City, State", "Total Number of Homicides", "Number of Unsolved Homicides")
   )
@@ -137,7 +139,7 @@ hw2_summary
 hw2_md = hw2_homicides %>% 
   filter(city_state == "Baltimore, MD") 
 
-prop_test = prop.test(1825,2827, conf.level=0.95)
+prop_test = prop.test(1825,2827, conf.level=0.95, correct=FALSE)
 
 broom::tidy(prop_test)
 
@@ -149,10 +151,48 @@ prop_test[["conf.int"]]
 * Using `prop_test[["estimate"]]` and `prop_test[["conf.int"]]` to get the estimate of 0.6455607 and confidence intervals from 0.6275625 to 0.6631599.
 
 ### Using `map` for `prop.test`
+define the `prop_test` function
 ```{r}
-
-
+    
+prop_test = function(dataset) {
+  
+  prop_test = dataset %>%
+  summarise(
+    total_homicides = n(),
+    unsolved_homicides = sum(final_disposition == "unsolved")
+  )
+  
+  test = prop.test(
+      prop_test$unsolved_homicides, 
+      prop_test$total_homicides, 
+      conf.level = 0.95, correct=FALSE
+      ) %>% 
+    broom::tidy()
+   
+  test
+}
 
 ```
 
+use `nest` and `map`
+```{r}
+
+  
+hw2_nest = hw2_homicides %>%
+  select(city_state, everything()) %>% 
+  nest(data = uid:final_disposition) 
+
+hw2_unsolved = hw2_nest %>% 
+   mutate(test_result = map(data, prop_test)) %>% 
+   unnest(test_result) %>% 
+   select(city_state, estimate, conf.low, conf.high) %>% 
+   knitr::kable(digits = 3)
+
+hw2_unsolved
+```
+
+## Plot
+```{r}
+
+```
 
