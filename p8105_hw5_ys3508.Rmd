@@ -184,15 +184,45 @@ hw2_nest = hw2_homicides %>%
 
 hw2_unsolved = hw2_nest %>% 
    mutate(test_result = map(data, prop_test)) %>% 
-   unnest(test_result) %>% 
-   select(city_state, estimate, conf.low, conf.high) %>% 
+   unnest(test_result) 
+
+hw2_unsolved%>% 
+  select(city_state, estimate, conf.low, conf.high) %>% 
    knitr::kable(digits = 3)
 
-hw2_unsolved
+
 ```
 
-## Plot
+### Plot
 ```{r}
+hw2_unsolved %>% 
+  mutate(
+    city_state = fct_reorder(city_state, estimate)) %>% 
+ggplot(aes(x=city_state, y=estimate, color =city_state)) + 
+  geom_point() +
+  geom_errorbar(aes(ymin=conf.low, ymax=conf.high), width=.2,
+                 position=position_dodge(.9))+
+  labs(title="The estimates and CIs for proportion of unsolved homicides for each city", x="City and state", y = "Estimtate")
+```
+
+## Problem 3
+
+`t_test` function:
+
+```{r}
+
+t_test = function(n = 30, mu, sigma = 5) {
+  
+  x = rnorm(n, mean = mu, sd = sigma)
+  
+  t_test =
+    t.test(x, mu = 0) %>% 
+    broom::tidy() 
+  
+  t_test %>% 
+    select(estimate, p.value)
+  
+}
 
 ```
 
