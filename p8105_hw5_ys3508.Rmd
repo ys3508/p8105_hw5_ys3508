@@ -110,10 +110,11 @@ hw2 <-read_csv(url(urlfile))
 ### Create a city_state variable/Summary
 
 ```{r}
-hw2 = hw2 %>% 
+hw2_homicides = hw2 %>% 
  mutate(
     state = str_to_upper(state),
     city_state = str_c(city, ", ", state),
+    city_state = recode(city_state, "Tulsa, AL" = "Tulsa, OK"), #error in dataset;
     final_disposition =
           ifelse(disposition == "Closed by arrest" ,"solved", "unsolved")) %>% 
   group_by(city_state) %>% 
@@ -122,17 +123,18 @@ hw2 = hw2 %>%
     unsolved_homicides = sum(final_disposition == "unsolved")
   ) 
 
-hw2_summary = hw2 %>% 
+hw2_summary = hw2_homicides %>% 
   knitr::kable(
     col.names = c("City, State", "Total Number of Homicides", "Number of Unsolved Homicides")
   )
+hw2_summary
 ```
 
-###  `prop.test` function
+###  `prop.test` function for MD
 
 ```{r}
 
-hw2_md = hw2 %>% 
+hw2_md = hw2_homicides %>% 
   filter(city_state == "Baltimore, MD") 
 
 prop_test = prop.test(1825,2827, conf.level=0.95)
@@ -144,5 +146,13 @@ prop_test[["conf.int"]]
 
 ```
 
-Using `prop_test[["estimate"]]` and `prop_test[["conf.int"]]` to get the estimate of 0.6455607 and confidence intervals from 0.6275625 to 0.6631599.
+* Using `prop_test[["estimate"]]` and `prop_test[["conf.int"]]` to get the estimate of 0.6455607 and confidence intervals from 0.6275625 to 0.6631599.
+
+### Using `map` for `prop.test`
+```{r}
+
+
+
+```
+
 
