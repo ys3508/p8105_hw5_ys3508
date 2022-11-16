@@ -226,3 +226,13 @@ t_test = function(n = 30, mu, sigma = 5) {
 
 ```
 
+Generate 5000 datasets from the model:
+
+```{r}
+sim_results =
+  rerun(5000, t_test(mu = 0)) %>%  #generate 5000 dataset;
+  bind_rows()
+sim_results
+
+```
+
