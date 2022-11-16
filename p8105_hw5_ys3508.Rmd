@@ -80,8 +80,21 @@ hw1_tidy = hw1 %>%
  
 ```
 
+### Plot
+
 ```{r}
+hw1_tidy %>% 
+  ggplot(aes(x = week, y = observation, group = subject_id, colour = subject_id)) +
+    labs(x = "Time in week", y = "Observations", color = "Control arm", title = "Observations on each subject over time") + 
+    geom_line(size=0.5) +
+    geom_point(size=2) +
+    facet_grid(. ~ arm) +
+    theme_bw() +
+    theme(legend.position="bottom")
 
 ```
+
+* The observation values for individuals in the experimental arm are greater on average than those in the control arm. Furthermore, there appears to be some growth in a fairly linear fashion over time for those in the experimental arm, but the observation value for those in the control arm tends to be more steady.
+
 
 
