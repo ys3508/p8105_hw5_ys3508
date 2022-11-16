@@ -8,6 +8,7 @@ date: "2022-11-16"
 library(tidyverse)
 library(rvest)
 library (readr)
+library(plotly)
 
 knitr::opts_chunk$set(
 	echo = TRUE,
@@ -206,7 +207,7 @@ ggplot(aes(x=city_state, y=estimate, color =city_state)) +
 ```
 
 ## Problem 3
-
+### t-test
 `t_test` function:
 
 ```{r}
@@ -229,26 +230,100 @@ t_test = function(n = 30, mu, sigma = 5) {
 Generate 5000 datasets from the model:
 
 ```{r}
-sim_results =
+t_results =
   rerun(5000, t_test(mu = 0)) %>%  #generate 5000 dataset;
   bind_rows()
-sim_results
+
 
 ```
 
 Repeat the above for μ={1,2,3,4,5,6}:
 
-```{r}
-sim_results_df = 
+```{r, cache = TRUE}
+t_results_df = 
   expand_grid(
-    mu = c(1, 2, 3, 4, 5, 6),
+    ture_mu = c(1, 2, 3, 4, 5, 6),
     iteration = 1:5000
   ) %>% 
   mutate(
-    estimate_df = map(.x = mu, ~ t_test (mu = .x))
+    estimate_df = map(.x = ture_mu, ~ t_test (mu = .x))
   ) %>% 
   unnest(estimate_df)
-sim_results_df
+
 ```
 
+### Plot1
 Make a plot showing the proportion of times the null was rejected (the power of the test) on the y axis and the true value of μ on the x axis. Describe the association between effect size and power.
+
+```{r}
+
+t_plot1 = t_results_df %>% 
+  mutate(
+    result = ifelse(p.value < 0.05, "Reject", "Fail to reject"
+    )) %>% 
+  group_by(ture_mu) %>% 
+  summarize(
+    total = n(),
+    reject = sum(result == "Reject")
+  ) %>% 
+  mutate(
+    prop_reject_null = reject / total
+  ) 
+  
+t_plot1 %>% 
+    mutate(text_label = str_c("Reject number: ", reject, "\nProportion of rejection: ", prop_reject_null)) %>%
+    plot_ly(
+    x = ~ ture_mu, y = ~ prop_reject_null, type = "scatter", mode = "markers", 
+    text = ~text_label, alpha = 0.5) %>% 
+    layout(title = 'The relashinship between power of the test and ture μ', plot_bgcolor = "#e5ecf6", xaxis = list(title = 'Ture μ value'), 
+         yaxis = list(title = 'The power of the test)'))
+
+
+
+```
+
+* The power, or the percentage of times the null was rejected, will grow as the effect size, or the true mu, increases.
+
+### Plot2
+Make a plot showing the average estimate of μ̂  on the y axis and the true value of μ on the x axis. Make a second plot (or overlay on the first) the average estimate of μ̂  only in samples for which the null was rejected on the y axis and the true value of μ on the x axis. 
+
+
+```{r}
+t_plot2 = t_results_df %>% 
+  mutate(
+    result = ifelse(p.value < 0.05, "Reject", "Fail to reject"
+    )) %>% 
+  group_by(ture_mu) %>% 
+  summarise(avg_estimate_mu = mean(estimate))
+
+t_plot2 %>% 
+    plot_ly(
+    x = ~ ture_mu, y = ~ avg_estimate_mu, type = "scatter", mode = "markers", 
+    alpha = 0.5) %>% 
+    layout(title = 'The relashinship between average estimate of μ_hat and ture μ', plot_bgcolor = "#e5ecf6", xaxis = list(title = 'Ture μ value'), 
+         yaxis = list(title = 'average estimate of μ_hat)'))
+
+```
+
+```{r}
+t_plot3 = t_results_df %>% 
+  mutate(
+    result = ifelse(p.value < 0.05, "Reject", "Fail to reject"
+    )) %>% 
+  filter(result == "Reject") %>% 
+  group_by(ture_mu) %>% 
+  summarise(avg_estimate_mu = mean(estimate))
+
+t_plot3 %>% 
+    plot_ly(
+    x = ~ ture_mu, y = ~ avg_estimate_mu, type = "scatter", mode = "markers", 
+    alpha = 0.5) %>% 
+    layout(title = 'The relashinship between average estimate of μ_hat and ture μ', plot_bgcolor = "#e5ecf6", xaxis = list(title = 'Ture μ value'), 
+         yaxis = list(title = 'average estimate of μ_hat)'))
+
+```
+* The sample average of mu estimtate across tests for which the null hypothesis is rejected is not nearly equivalent to the true value when the value of mu is small. The average of mu, however, is closer to true mu as true mu increases, i.e., the sample average is becoming closer and closer to the true value.
+
+Reasons:
+When true mu is small, which means the effect size is small, the power is low, and fewer samples are rejected, leading to a larger average estimate compared to the true value.
+When true mu is increasing, which means the effect size is increasing, the power is increasing, and more samples are rejected, leading to a closer average estimate compared to the true value.
