@@ -3,7 +3,7 @@ title: "p8105_hw5_ys3508"
 output: github_document
 date: "2022-11-16"
 ---
-
+# Writing Function
 ```{r}
 library(tidyverse)
 library(rvest)
@@ -26,3 +26,39 @@ options(
 scale_colour_discrete = scale_colour_viridis_d
 scale_fill_discrete = scale_fill_viridis_d
 ```
+
+
+## Problem 1
+### Create a tidy dataframe
+```{r}
+file_names = list.files(path = "data/problem1", pattern = NULL, all.files = FALSE, full.names = TRUE)
+```
+
+Iterate over file names and read in data for each subject using purrr::map and saving the result as a new variable in the dataframe
+```{r}
+#using map + read_csv function
+hw1 = map(file_names, read_csv)
+
+for (i in 1:20) 
+  {
+  
+  if (i < 11) {
+    
+    hw1 [[i]] = hw1 [[i]] %>% 
+      mutate(
+        subject_id = i,
+        arm = "Control")
+  }
+  
+  else {
+    
+    hw1 [[i]] = hw1 [[i]] %>% 
+      mutate(
+        subject_id = i - 10,
+        arm = "Experimental")
+  }
+  
+}
+
+```
+
